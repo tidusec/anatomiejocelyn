@@ -20,7 +20,9 @@ type QuestionType =
   | "innervation_reverse" 
   | "function_reverse"
   | "true_false"
-  | "match_property";
+  | "match_property"
+  | "origo_or_insertio"
+  | "which_muscle_origo_insertio";
 
 interface MultipleChoiceProps {
   muscles: { muscle: Muscle; sectionTitle: string; subsectionTitle?: string }[];
@@ -43,6 +45,109 @@ function shuffleArray<T>(array: T[]): T[] {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled;
+}
+
+// Helper functie om anatomische termen te extraheren voor slimme foute antwoorden
+function extractAnatomicalTerms(text: string): string[] {
+  const terms: string[] = [];
+  // Extract common anatomical prefixes/patterns
+  const patterns = [
+    /proc\.\s*\w+/gi,
+    /linea\s*\w+/gi,
+    /tuberculum\s*\w+/gi,
+    /crista\s*\w+/gi,
+    /fossa\s*\w+/gi,
+    /os\s*\w+/gi,
+    /lig\.\s*\w+/gi,
+    /m\.\s*\w+/gi,
+    /[A-Z]\d+-[A-Z]?\d+/g, // vertebrae patterns like C6-T2
+    /rib\s*\d+(-\d+)?/gi,
+    /costae?\s*\d+(-\d+)?/gi,
+  ];
+  
+  for (const pattern of patterns) {
+    const matches = text.match(pattern);
+    if (matches) terms.push(...matches);
+  }
+  
+  return terms;
+}
+
+// Genereer plausibele foute antwoorden gebaseerd op het juiste antwoord
+function generateSmartWrongAnswers(
+  correctAnswer: string,
+  allMuscles: Muscle[],
+  property: keyof Muscle,
+  count: number = 3
+): string[] {
+  const wrongAnswers: string[] = [];
+  const correctTerms = extractAnatomicalTerms(correctAnswer);
+  
+  // 1. Probeer eerst vergelijkbare antwoorden te vinden (met overlappende anatomische termen)
+  const similarAnswers = allMuscles
+    .filter(m => m[property] && m[property] !== correctAnswer && m[property].length > 0)
+    .map(m => ({ answer: m[property], score: 0 }))
+    .map(item => {
+      const itemTerms = extractAnatomicalTerms(item.answer);
+      // Score based on shared terms
+      for (const term of correctTerms) {
+        if (item.answer.toLowerCase().includes(term.toLowerCase())) {
+          item.score += 2;
+        }
+      }
+      // Also score based on similar length
+      const lengthDiff = Math.abs(item.answer.length - correctAnswer.length);
+      if (lengthDiff < 20) item.score += 1;
+      return item;
+    })
+    .sort((a, b) => b.score - a.score);
+  
+  // Get a mix of similar and random wrong answers
+  const highScoreAnswers = similarAnswers.filter(a => a.score > 0).slice(0, 2);
+  const randomAnswers = shuffleArray(similarAnswers.filter(a => a.score === 0));
+  
+  for (const item of highScoreAnswers) {
+    if (wrongAnswers.length < count && !wrongAnswers.includes(item.answer)) {
+      wrongAnswers.push(item.answer);
+    }
+  }
+  
+  for (const item of randomAnswers) {
+    if (wrongAnswers.length < count && !wrongAnswers.includes(item.answer)) {
+      wrongAnswers.push(item.answer);
+    }
+  }
+  
+  return wrongAnswers.slice(0, count);
+}
+
+// Genereer een verwisselde versie (origo ↔ insertio) voor extra moeilijkheid
+function generateConfusingOrigoInsertioOptions(
+  targetMuscle: Muscle,
+  allMuscles: Muscle[],
+  isOrigo: boolean
+): string[] {
+  const wrongAnswers: string[] = [];
+  
+  // 1. Voeg de eigen insertio/origo toe (meest voorkomende fout!)
+  if (isOrigo && targetMuscle.insertion && targetMuscle.insertion.length > 0) {
+    wrongAnswers.push(targetMuscle.insertion);
+  } else if (!isOrigo && targetMuscle.origin && targetMuscle.origin.length > 0) {
+    wrongAnswers.push(targetMuscle.origin);
+  }
+  
+  // 2. Voeg vergelijkbare origo's/insertio's van andere spieren toe
+  const property = isOrigo ? "origin" : "insertion";
+  const correctAnswer = isOrigo ? targetMuscle.origin : targetMuscle.insertion;
+  const smartWrong = generateSmartWrongAnswers(correctAnswer, allMuscles, property, 3);
+  
+  for (const answer of smartWrong) {
+    if (wrongAnswers.length < 3 && !wrongAnswers.includes(answer) && answer !== correctAnswer) {
+      wrongAnswers.push(answer);
+    }
+  }
+  
+  return wrongAnswers.slice(0, 3);
 }
 
 function generateQuestion(
@@ -189,6 +294,96 @@ function generateQuestion(
     };
   }
 
+  // NEW: Origo of Insertio vraag - "Is dit de origo of insertio van spier X?"
+  if (questionType === "origo_or_insertio") {
+    if (!targetMuscle.origin || !targetMuscle.insertion || 
+        targetMuscle.origin.length === 0 || targetMuscle.insertion.length === 0) return null;
+    
+    const isOrigo = Math.random() > 0.5;
+    const shownValue = isOrigo ? targetMuscle.origin : targetMuscle.insertion;
+    const correctAnswer = isOrigo ? "Origo" : "Insertie";
+    
+    const questionVariants = [
+      `"${shownValue}" is de ... van ${targetMuscle.name}?`,
+      `Bij ${targetMuscle.name}: is "${shownValue}" de origo of de insertie?`,
+      `Wat beschrijft "${shownValue}" voor ${targetMuscle.name}?`,
+    ];
+    
+    return {
+      muscle: targetMuscle,
+      questionType,
+      questionText: questionVariants[Math.floor(Math.random() * questionVariants.length)],
+      correctAnswer,
+      options: ["Origo", "Insertie"],
+      extraInfo: isOrigo 
+        ? `De insertie van ${targetMuscle.name} is: ${targetMuscle.insertion}`
+        : `De origo van ${targetMuscle.name} is: ${targetMuscle.origin}`,
+    };
+  }
+
+  // NEW: Welke spier heeft deze origo/insertio - met slimme foute antwoorden
+  if (questionType === "which_muscle_origo_insertio") {
+    const hasOrigo = targetMuscle.origin && targetMuscle.origin.length > 0;
+    const hasInsertio = targetMuscle.insertion && targetMuscle.insertion.length > 0;
+    if (!hasOrigo && !hasInsertio) return null;
+    
+    // Kies random origo of insertio
+    let isOrigo = Math.random() > 0.5;
+    if (!hasOrigo) isOrigo = false;
+    if (!hasInsertio) isOrigo = true;
+    
+    const property = isOrigo ? "origin" : "insertion";
+    const propertyLabel = isOrigo ? "origo" : "insertie";
+    const shownValue = isOrigo ? targetMuscle.origin : targetMuscle.insertion;
+    const correctAnswer = targetMuscle.name;
+    
+    // Gebruik slimme foute antwoorden - spieren met vergelijkbare origo/insertio
+    const confusingMuscles = allMuscles
+      .filter(m => m.name !== correctAnswer && m[property] && m[property].length > 0)
+      .map(m => {
+        const terms = extractAnatomicalTerms(shownValue);
+        let score = 0;
+        for (const term of terms) {
+          if (m[property].toLowerCase().includes(term.toLowerCase())) {
+            score += 2;
+          }
+          // Extra score als ze dezelfde structuur bevatten
+          if (m.origin?.toLowerCase().includes(term.toLowerCase()) ||
+              m.insertion?.toLowerCase().includes(term.toLowerCase())) {
+            score += 1;
+          }
+        }
+        return { muscle: m, score };
+      })
+      .sort((a, b) => b.score - a.score);
+    
+    // Mix van vergelijkbare en willekeurige spieren
+    const wrongAnswers: string[] = [];
+    for (const item of confusingMuscles.slice(0, 2)) {
+      if (wrongAnswers.length < 3) wrongAnswers.push(item.muscle.name);
+    }
+    const randomOthers = shuffleArray(confusingMuscles.slice(2));
+    for (const item of randomOthers) {
+      if (wrongAnswers.length < 3) wrongAnswers.push(item.muscle.name);
+    }
+    
+    if (wrongAnswers.length < 3) return null;
+    
+    const questionVariants = [
+      `Welke spier heeft als ${propertyLabel}: "${shownValue}"?`,
+      `De ${propertyLabel} "${shownValue}" hoort bij welke spier?`,
+      `Identificeer de spier met deze ${propertyLabel}: "${shownValue}"`,
+    ];
+    
+    return {
+      muscle: targetMuscle,
+      questionType,
+      questionText: questionVariants[Math.floor(Math.random() * questionVariants.length)],
+      correctAnswer,
+      options: shuffleArray([correctAnswer, ...wrongAnswers]),
+    };
+  }
+
   if (questionType === "name") {
     // For name questions, we show a property and ask for the muscle name
     const properties: (keyof Muscle)[] = ["origin", "insertion", "innervation", "function"];
@@ -225,16 +420,43 @@ function generateQuestion(
   
   if (!correctAnswer || correctAnswer.length === 0) return null;
 
-  // Get wrong answers from other muscles
-  const otherMuscles = allMuscles.filter(
-    m => m[config.answerKey] && m[config.answerKey] !== correctAnswer && m[config.answerKey].length > 0
-  );
-  
-  if (otherMuscles.length < 3) return null;
+  // Use smart wrong answers for origin and insertion questions
+  let wrongAnswers: string[];
+  if (questionType === "origin" || questionType === "insertion") {
+    // Voor origo/insertio vragen: gebruik slimme foute antwoorden
+    wrongAnswers = generateConfusingOrigoInsertioOptions(
+      targetMuscle,
+      allMuscles,
+      questionType === "origin"
+    );
+    
+    // Als we niet genoeg slimme antwoorden hebben, vul aan met willekeurige
+    if (wrongAnswers.length < 3) {
+      const otherMuscles = allMuscles.filter(
+        m => m[config.answerKey] && 
+             m[config.answerKey] !== correctAnswer && 
+             !wrongAnswers.includes(m[config.answerKey]) &&
+             m[config.answerKey].length > 0
+      );
+      const additional = shuffleArray(otherMuscles)
+        .slice(0, 3 - wrongAnswers.length)
+        .map(m => m[config.answerKey]);
+      wrongAnswers.push(...additional);
+    }
+  } else {
+    // Voor andere vragen: standaard methode
+    const otherMuscles = allMuscles.filter(
+      m => m[config.answerKey] && m[config.answerKey] !== correctAnswer && m[config.answerKey].length > 0
+    );
+    
+    if (otherMuscles.length < 3) return null;
 
-  const wrongAnswers = shuffleArray(otherMuscles)
-    .slice(0, 3)
-    .map(m => m[config.answerKey]);
+    wrongAnswers = shuffleArray(otherMuscles)
+      .slice(0, 3)
+      .map(m => m[config.answerKey]);
+  }
+  
+  if (wrongAnswers.length < 3) return null;
 
   // Add question variants for standard questions
   const questionVariants: Record<string, string[]> = {

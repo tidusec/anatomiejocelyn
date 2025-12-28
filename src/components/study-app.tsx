@@ -50,7 +50,9 @@ type QuestionType =
   | "innervation_reverse"
   | "function_reverse"
   | "true_false"
-  | "match_property";
+  | "match_property"
+  | "origo_or_insertio"
+  | "which_muscle_origo_insertio";
 
 export function StudyApp() {
   // Filter state
@@ -76,6 +78,8 @@ export function StudyApp() {
       "function_reverse",
       "true_false",
       "match_property",
+      "origo_or_insertio",
+      "which_muscle_origo_insertio",
     ])
   );
 
@@ -401,6 +405,24 @@ export function StudyApp() {
                           {[
                             { id: "true_false" as QuestionType, label: "Waar/Niet waar vragen" },
                             { id: "match_property" as QuestionType, label: "Eigenschap matchen" },
+                          ].map((type) => (
+                            <div key={type.id} className="flex items-center justify-between">
+                              <Label htmlFor={`mc-${type.id}`}>{type.label}</Label>
+                              <Switch
+                                id={`mc-${type.id}`}
+                                checked={mcQuestionTypes.has(type.id)}
+                                onCheckedChange={() => toggleMcQuestionType(type.id)}
+                              />
+                            </div>
+                          ))}
+
+                          <Separator className="my-3" />
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">
+                            🎯 Examen-stijl vragen
+                          </p>
+                          {[
+                            { id: "origo_or_insertio" as QuestionType, label: "Is dit origo of insertie?" },
+                            { id: "which_muscle_origo_insertio" as QuestionType, label: "Welke spier (slimme fouten)" },
                           ].map((type) => (
                             <div key={type.id} className="flex items-center justify-between">
                               <Label htmlFor={`mc-${type.id}`}>{type.label}</Label>
