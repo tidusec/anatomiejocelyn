@@ -6,18 +6,22 @@ export interface Muscle {
   function: string;
 }
 
+export interface Structure {
+  name: string;
+  origin: string;
+  course?: string;
+  insertion?: string;
+  function: string;
+  note?: string;
+}
+
 export interface Subsection {
   id: string;
   title: string;
   note?: string;
   muscles?: Muscle[];
+  structures?: Structure[];
   description?: string;
-  parts?: {
-    name: string;
-    origin: string;
-    course?: string;
-    insertion: string;
-  }[];
 }
 
 export interface Section {
@@ -37,7 +41,7 @@ export const anatomyData: AnatomyData = {
   "sections": [
     {
       "id": "deep_back_muscles",
-      "title": "DIEPERE RUGSPIEREN",
+      "title": "DIEPE SCHUINE RUGSPIEREN",
       "subsections": [
         {
           "id": "spinocostal_group",
@@ -48,14 +52,14 @@ export const anatomyData: AnatomyData = {
               "origin": "proc. spinosus C6-T2",
               "insertion": "angulus costae rib 2-5",
               "innervation": "Nervi intercostales",
-              "function": "Elevatie costae (inspiratie) = vergroten van de thoraxholte"
+              "function": "Elevatie costae (inspiratie) => vergroten van de thoraxholte"
             },
             {
               "name": "m. serratus posterior inferior",
               "origin": "proc. spinosus T11-L2",
               "insertion": "angulus costae rib 9-12",
               "innervation": "Nervi intercostales",
-              "function": "Depressie costae (expiratie) = verkleinen van de thoraxholte"
+              "function": "Depressie costae (expiratie) => verkleinen van de thoraxholte"
             }
           ]
         },
@@ -66,16 +70,16 @@ export const anatomyData: AnatomyData = {
             {
               "name": "m. splenius capitis",
               "origin": "proc. spinosus C3-C7",
-              "insertion": "Rr. dorsalis nn. spinales cervicales",
+              "insertion": "proc. mastoideus os temporalis en linea nuchae",
               "innervation": "Rr. dorsalis nn. spinales cervicales",
-              "function": "Unilaterale contractie: Lateroflexie hoofd - Homolaterale rotatie hoofd en nek. Bilaterale contractie: retroflexie hoofd"
+              "function": "Unilaterale contractie: Lateroflexie hoofd, Homolaterale rotatie hoofd en nek. Bilaterale contractie: retroflexie hoofd"
             },
             {
               "name": "m. splenius cervicis",
               "origin": "proc. spinosus T1-T6",
               "insertion": "tuberculum posterior (proc. transversus)",
               "innervation": "Rr. dorsalis nn. spinales cervicales",
-              "function": "Unilaterale contractie: lateroflexie hoofd. Bilaterale contractie: retroflexie hoofd en nek"
+              "function": "Unilaterale contractie: lateroflexie hoofd. Bilaterale contractie: retroflexie hoofd"
             }
           ]
         },
@@ -86,119 +90,195 @@ export const anatomyData: AnatomyData = {
             {
               "name": "m. semispinalis thoracis",
               "origin": "proc. transversus T7-T12",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
+              "insertion": "proc. spinosus T6-C6",
+              "innervation": "rr. dorsales nn. spinales",
               "function": "Unilaterale contractie: lateroflexie WZ. Bilaterale contractie: retroflexie WZ"
             },
             {
               "name": "m. semispinalis cervicis",
               "origin": "proc. transversus T1-T6",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
-              "function": "Unilaterale contractie: Lateroflexie hoofd en nek - Contralaterale rotatie hoofd en nek. Bilaterale contractie: Retroflexie - Extensie hoofd, nek en romp"
+              "insertion": "proc. spinosus C2-C5",
+              "innervation": "rr. dorsales nn. spinales",
+              "function": "Unilaterale contractie: Lateroflexie hoofd en nek, Contralaterale rotatie hoofd en nek. Bilaterale contractie: Retroflexie, Extensie hoofd, nek en romp"
             },
             {
               "name": "m. semispinalis capitis",
-              "origin": "proc. transversus T1-T7 - Proc. articularis C4-C7",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
+              "origin": "Proc. transversus T1-T7, Proc. articularis C4-C7",
+              "insertion": "linea nuchae",
+              "innervation": "rr. dorsales nn. spinales",
               "function": "Unilaterale contractie: heterolaterale torsie hoofd. Bilaterale contractie: retroflexie hoofd"
             },
             {
               "name": "m. multifidus",
-              "origin": "Dorsale zijde sacrum - Proc. mamillaris lumbale wervels - Proc. transversus thoracale wervels - Proc. articularis C4-C7",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
+              "origin": "Dorsale zijde sacrum, Proc. mamillaris lumbale wervels, Proc. transversus thoracale wervels, Proc. articularis C4-C7",
+              "insertion": "proc. spinosus 2-4 hogere wervels",
+              "innervation": "rr. dorsales nn. spinales",
               "function": "Unilaterale contractie: homolaterale flexie en torsie wervelzuil. Bilaterale contractie: retroflexie wervelzuil"
-            }
-          ]
-        },
-        {
-          "id": "short_back_muscles",
-          "title": "Korterechterugspieren",
-          "muscles": [
-            {
-              "name": "mm. intertransversarii lumborum medialis",
-              "origin": "proc. mamillaris L1-L5",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
-              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
             },
-            {
-              "name": "mm. intertransversarii lumborum lateralis",
-              "origin": "proc. costarius L1-L5",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
-              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
-            },
-            {
-              "name": "mm. intertransversarii thoracis",
-              "origin": "proc. transversus van de boven liggende wervel",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
-              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
-            },
-            {
-              "name": "mm. intertransversarii cervicis anteriores",
-              "origin": "tuberculum anterius van de cervicale wervels",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
-              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
-            },
-            {
-              "name": "mm. intertransversarii cervicis posteriores",
-              "origin": "tuberculum posterius van de cervicale wervels",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
-              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
-            },
-            {
-              "name": "mm. interspinales",
-              "origin": "proc. spinosus van de boven liggende wervel",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
-              "function": "Retroflexie / extensie wervelzuil"
-            },
-            {
-              "name": "mm. levatores costarum",
-              "origin": "proc. transversus cervicale en thoracale wervels",
-              "insertion": "rr. intercostales 1-11",
-              "innervation": "rr. intercostales 1-11",
-              "function": "Inspiratie bevorderen (ribben opheffen) = hulpademhalingsspier"
-            }
-          ]
-        },
-        {
-          "id": "rotators",
-          "title": "mm. rotatores",
-          "muscles": [
             {
               "name": "mm. rotatores",
               "origin": "proc. transversus cervicale en thoracale wervels",
-              "insertion": "rr. dorsalis nn. spinales",
-              "innervation": "rr. dorsalis nn. spinales",
-              "function": "Wervelsdraaiing rondom longitudinale as"
+              "insertion": "basis vd proc. spinosus vd bovenliggende wervel",
+              "innervation": "rr. dorsales nn. spinales",
+              "function": "Wervels draaien rond overlangse as"
             }
           ]
         }
       ]
     },
     {
-      "id": "shallow_back_muscles",
-      "title": "LANGERE RUGSPIEREN",
+      "id": "straight_back_muscles",
+      "title": "DIEPE RECHTE RUGSPIEREN",
       "subsections": [
         {
           "id": "longer_back_muscles",
-          "title": "Langere rugspieren",
+          "title": "Lange rechte rugspieren",
           "muscles": [
             {
-              "name": "mm. spinales",
+              "name": "mm. spinales thoracis",
               "origin": "proc. Spinosus T11-L2",
-              "insertion": "rr. dorsalis nn. spinales",
+              "insertion": "proc. Spinosus T1-T8",
               "innervation": "rr. dorsalis nn. spinales",
-              "function": "Unilaterale contractie: homolaterale flexie wervelzuil. Bilaterale contractie: retroflexie / extensie WZ"
+              "function": "Unilaterale contractie: homolaterale flexie wervelzuil. Bilaterale contractie: retroflexie/extensie WZ"
+            },
+            {
+              "name": "mm. spinales capitis",
+              "origin": "proc. spinosus C6-T2",
+              "insertion": "m. semispinales capitis",
+              "innervation": "rr. dorsalis nn. spinales",
+              "function": "Unilaterale contractie: homolaterale flexie wervelzuil. Bilaterale contractie: retroflexie/extensie WZ"
+            },
+            {
+              "name": "mm. spinales cervicis",
+              "origin": "proc. Spinosus C6-T2",
+              "insertion": "proc. Spinosus C2-C4",
+              "innervation": "rr. dorsalis nn. spinales",
+              "function": "Unilaterale contractie: homolaterale flexie wervelzuil. Bilaterale contractie: retroflexie/extensie WZ"
             }
           ]
+        },
+        {
+          "id": "short_back_muscles",
+          "title": "Korte rechte rugspieren",
+          "muscles": [
+            {
+              "name": "mm. intertransversarii lumborum medialis",
+              "origin": "proc. mamillaris L1-L5",
+              "insertion": "proc. accessorius van de bovenliggende wervel",
+              "innervation": "rr. dorsales nn. spinales",
+              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
+            },
+            {
+              "name": "mm. intertransversarii lumborum lateralis",
+              "origin": "proc. costarius L1-L5",
+              "insertion": "proc. costarius van de bovenliggende wervel",
+              "innervation": "rr. dorsales nn. spinales",
+              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
+            },
+            {
+              "name": "mm. intertransversarii thoracis",
+              "origin": "proc. transversus",
+              "insertion": "proc. transversus van de bovenliggende wervel",
+              "innervation": "rr. dorsales nn. spinales",
+              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
+            },
+            {
+              "name": "mm. intertransversarii cervicis anteriores",
+              "origin": "tuberculum anterius van de cervicale wervels",
+              "insertion": "tuberculum anterius van de bovenliggende wervel",
+              "innervation": "rr. dorsales nn. spinales",
+              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
+            },
+            {
+              "name": "mm. intertransversarii cervicis posteriores",
+              "origin": "tuberculum posterius van de cervicale wervels",
+              "insertion": "tuberculum posterius van de bovenliggende wervel",
+              "innervation": "rr. dorsales nn. spinales",
+              "function": "Unilaterale contractie: homolaterale flexie. Bilaterale contractie: strekken van de wervelzuil"
+            },
+            {
+              "name": "mm. interspinales",
+              "origin": "proc. spinosus",
+              "insertion": "proc. spinosus van de bovenliggende wervel",
+              "innervation": "rr. dorsalis nn. spinales",
+              "function": "Retroflexie/extensie wervelzuil"
+            },
+            {
+              "name": "mm. levatores costarum",
+              "origin": "proc. transversus C7-T11",
+              "insertion": "breves = buitenzijde onderliggende rib, longi = buitenzijde rib 2 ribben lager",
+              "innervation": "rr. intercostalis 1-11",
+              "function": "Lateroflexie wervelzuil. Inspiratie bevorderen (ribben opheffen) = hulpademhalingsspier"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "auxiliary_apparatus",
+      "title": "HULPAPPARATEN",
+      "subsections": [
+        {
+          "id": "fascia_thoracolumbalis",
+          "title": "Fascia thoracolumbalis",
+          "structures": [
+            {
+              "name": "Ligamentum iliolumbale",
+              "origin": "proc. spinosus T1-L5, sacrum, dorsaal deel van crista iliaca",
+              "course": "op de erector spinae, onder m. serratus posterior superior en mm. rhomboidei, gaat over in de fascia nuchae (onder m. trapezius)",
+              "insertion": "linea nuchae",
+              "function": "Origo van de m. latissimus dorsi en m. gluteus maximus",
+              "note": "Ligamentum iliolumbale = oppervlakkig blad van fascia thoracolumbalis"
+            },
+            {
+              "name": "Ligamentum lumbocostale",
+              "origin": "proc. costarius L1-L5, onderste rib, crista iliaca",
+              "course": "tussen m. quadratus lumborum en m. erector spinae",
+              "function": "Origo van m. obliquus abdominis internus en m. transversus abdominis",
+              "note": "Ligamentum lumbocostale = diep blad van fascia thoracolumbalis"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "musculi_capitis",
+      "title": "MUSCULI CAPITIS",
+      "muscles": [
+        {
+          "name": "m. rectus capitis posterior major",
+          "origin": "proc. spinosus axis",
+          "insertion": "middelste 1/3 van de linea nuchae inf.",
+          "innervation": "n. suboccipitalis",
+          "function": "Unilaterale contractie: homolaterale rotatie hoofd. Bilaterale contractie: retroflexie hoofd"
+        },
+        {
+          "name": "m. rectus capitis posterior minor",
+          "origin": "tuberculum posterior atlantis",
+          "insertion": "binnenste 1/3 van de linea nuchae inf.",
+          "innervation": "n. suboccipitalis",
+          "function": "Unilaterale contractie: homolaterale rotatie hoofd. Bilaterale contractie: retroflexie hoofd"
+        },
+        {
+          "name": "m. obliquus capitis superior",
+          "origin": "massa lateralis atlantis",
+          "insertion": "linea nuchae inferior boven m. rectus capitis posterior major",
+          "innervation": "n. suboccipitalis",
+          "function": "Unilaterale contractie: homolaterale rotatie hoofd. Bilaterale contractie: retroflexie hoofd"
+        },
+        {
+          "name": "m. obliquus capitis inferior",
+          "origin": "proc. spinosus axis",
+          "insertion": "massa lateralis atlantis",
+          "innervation": "n. suboccipitalis",
+          "function": "Unilaterale contractie: homolaterale rotatie hoofd. Bilaterale contractie: retroflexie hoofd"
+        },
+        {
+          "name": "m. rectus capitis lateralis",
+          "origin": "massa lateralis atlantis",
+          "insertion": "proc. jugularis ossis occipitalis",
+          "innervation": "n. suboccipitalis",
+          "function": "Unilaterale contractie: homolaterale FLEXIE hoofd. Bilaterale contractie: HOOFD RECHT HOUDEN"
         }
       ]
     },
@@ -219,15 +299,15 @@ export const anatomyData: AnatomyData = {
             },
             {
               "name": "m. bulbospongiosus",
-              "origin": "Man: centrum tendineum perinei, corpora cavernosa (L en R) en corpus spongiosum. Vrouw: centrum tendineum perinei, dorsale clitoriswand",
-              "insertion": "",
+              "origin": "Man: centrum tendineum perinei. Vrouw: centrum tendineum perinei",
+              "insertion": "Man: corpora cavernosa (L en R) en corpus spongiosum. Vrouw: dorsale clitoriswand",
               "innervation": "nn. perinealis van n. pudendus",
               "function": "Man: Erectie, Trekt ritmisch samen bij ejalculatie, Evacueert tijdens contractie sperma/urine uit urethra. Vrouw: Afsluiten vaginale opening, Trekt ritmisch samen tijdens orgasme"
             },
             {
               "name": "m. ischiocavernosus",
-              "origin": "Man: binnenzijde van tuber ischiadicum en ramus ossis ischii, crura. Vrouw: binnenzijde van tuber ischiadicum en ramus ossis ischii, dorsale zijde van clitoris",
-              "insertion": "",
+              "origin": "Man: binnenzijde van tuber ischiadicum en ramus ossis ischii. Vrouw: binnenzijde van tuber ischiadicum en ramus ossis ischii",
+              "insertion": "Man: crura. Vrouw: dorsale zijde van clitoris",
               "innervation": "nn. perinealis van n. pudendus",
               "function": "Man: Erectie in stand houden (belemmeren van bloedafvoer uit corpora cavernosa). Vrouw: Clitoriszwelling in stand houden"
             },
@@ -236,13 +316,13 @@ export const anatomyData: AnatomyData = {
               "origin": "tuber ischiadicum",
               "insertion": "centrum tendineum perinei",
               "innervation": "nn. perinealis van n. pudendus",
-              "function": ""
+              "function": "Stabiliseren van het perineum"
             }
           ]
         },
         {
           "id": "middle_layer",
-          "title": "Het middenplan",
+          "title": "Het midden plan",
           "muscles": [
             {
               "name": "m. transversus perinei profundus",
@@ -259,11 +339,11 @@ export const anatomyData: AnatomyData = {
               "function": "Fixeren van urethra in perineum. Afsluiten van urethra"
             },
             {
-              "name": "m. sphincter ani",
+              "name": "m. sphincter ani (diepe deel)",
               "origin": "Diepe deel van de spier",
               "insertion": "",
               "innervation": "nn. rectales inferiores van n. pudendus",
-              "function": ""
+              "function": "Afsluiten van het anaalkanaal"
             }
           ]
         },
@@ -273,25 +353,25 @@ export const anatomyData: AnatomyData = {
           "note": "Vormen diaphragma pelvis omgeven door fascia pelvis visceralis en parietalis",
           "muscles": [
             {
-              "name": "m. levatorani",
-              "origin": "",
-              "insertion": "",
-              "innervation": "rr. m. levatorani van n. pudendus",
-              "function": ""
+              "name": "m. levator ani",
+              "origin": "Os pubis tot spina ischiadica (arcus tendineus)",
+              "insertion": "Centrum tendineum perinei, wanden van organen, coccyx",
+              "innervation": "r. m. levator ani van n. pudendus",
+              "function": "Ondersteuning bekkenorganen, afsluiten bekkenbodem"
             },
             {
               "name": "m. puborectalis",
               "origin": "os pubis (1 cm van symphysis pubis)",
-              "insertion": "Voorste vezels: m. levator prostatae (Man) / m. pubovaginalis (Vrouw). Middelste vezels: centrum tendineum perinei. Dorsale vezels: dorsale zijde rectum",
-              "innervation": "",
-              "function": "Anorectale hoek verwekken = fecaal continent"
+              "insertion": "Voorste vezels: Man: m. levator prostatae, Vrouw: m. pubovaginalis. Middelste vezels: centrum tendineum perinei. Dorsale vezels: dorsale zijde rectum",
+              "innervation": "r. m. levator ani van n. pudendus",
+              "function": "Anorectale hoek verwekken => faecaal continent"
             },
             {
               "name": "m. pubococcygeus",
               "origin": "os pubis",
               "insertion": "lig. anococcygeum en coccyx",
-              "innervation": "",
-              "function": "Coccyx opplichten. Verwekt crena ani / aarsgroeve"
+              "innervation": "r. m. levator ani van n. pudendus",
+              "function": "Coccyx oplichten. Verwekt crena ani/aarsgroeve"
             },
             {
               "name": "m. iliococcygeus",
@@ -305,74 +385,9 @@ export const anatomyData: AnatomyData = {
               "origin": "spina ischiadica",
               "insertion": "laterale rand coccyx",
               "innervation": "n. coccygeus plexus sacralis",
-              "function": ""
+              "function": "Ondersteunen van de coccyx"
             }
           ]
-        }
-      ]
-    },
-    {
-      "id": "auxiliary_apparatus",
-      "title": "HULPAPPARATEN",
-      "subsections": [
-        {
-          "id": "fascia_thoracolumbalis",
-          "title": "Fascia thoracolumbalis",
-          "description": "Ligamentum iliolumbale: Origo: proc. spinosus T1-L5 - sacrum - dorsaal zijde os ilium. Verloop: op de erector spinae - onder m. serratus posterior en m. rhomboidei - gaat over in de fascia nuchae (onder m. trapezius). Insertio: linea nuchae",
-          "parts": [
-            {
-              "name": "Ligamentum iliolumbale",
-              "origin": "proc. spinosus T1-L5 - sacrum - dorsaal zijde os ilium",
-              "course": "op de erector spinae - onder m. serratus posterior en m. rhomboidei - gaat over in de fascia nuchae (onder m. trapezius)",
-              "insertion": "linea nuchae"
-            }
-          ]
-        },
-        {
-          "id": "ligamentum_lumbocostale",
-          "title": "Ligamentum lumbocostale",
-          "description": "Origo: proc. costarius L1-L5. Insertio: onderste rib - crista iliaca. Verloop: tussen m. quadratus lumborum en m. erector spinae"
-        }
-      ]
-    },
-    {
-      "id": "musculi_capitis",
-      "title": "MUSCULI CAPITIS",
-      "muscles": [
-        {
-          "name": "m. rectus capitis posterior major",
-          "origin": "proc. spinosus axis",
-          "insertion": "n. suboccipitalis",
-          "innervation": "n. suboccipitalis",
-          "function": "Anteversie continent. Willekeurige contractie aars"
-        },
-        {
-          "name": "m. rectus capitis posterior minor",
-          "origin": "tuberculum posterius atlantis",
-          "insertion": "n. suboccipitalis",
-          "innervation": "n. suboccipitalis",
-          "function": "Unilaterale contractie: homolaterale rotatie hoofd. Bilaterale contractie: retroflexie hoofd"
-        },
-        {
-          "name": "m. obliquus capitis superior",
-          "origin": "massa lateralis atlantis",
-          "insertion": "n. suboccipitalis",
-          "innervation": "n. suboccipitalis",
-          "function": "Unilaterale contractie: homolaterale rotatie hoofd. Bilaterale contractie: retroflexie hoofd"
-        },
-        {
-          "name": "m. obliquus capitis inferior",
-          "origin": "proc. spinosus axis",
-          "insertion": "n. suboccipitalis",
-          "innervation": "n. suboccipitalis",
-          "function": "Unilaterale contractie: homolaterale rotatie hoofd. Bilaterale contractie: retroflexie hoofd"
-        },
-        {
-          "name": "m. rectus capitis lateralis",
-          "origin": "massa lateralis atlantis",
-          "insertion": "n. suboccipitalis",
-          "innervation": "n. suboccipitalis",
-          "function": "Unilaterale contractie: homolaterale FLEXIE hoofd. Bilaterale contractie: HOOFDRECHT HOUDEN"
         }
       ]
     }
@@ -410,6 +425,29 @@ export function getAllMuscles(): { muscle: Muscle; sectionTitle: string; subsect
   return muscles;
 }
 
+// Get all structures (ligaments, fascia, etc.)
+export function getAllStructures(): { structure: Structure; sectionTitle: string; subsectionTitle?: string }[] {
+  const structures: { structure: Structure; sectionTitle: string; subsectionTitle?: string }[] = [];
+  
+  anatomyData.sections.forEach(section => {
+    if (section.subsections) {
+      section.subsections.forEach(subsection => {
+        if (subsection.structures) {
+          subsection.structures.forEach(structure => {
+            structures.push({ 
+              structure, 
+              sectionTitle: section.title, 
+              subsectionTitle: subsection.title 
+            });
+          });
+        }
+      });
+    }
+  });
+  
+  return structures;
+}
+
 // Get unique sections for filtering
 export function getSections(): { id: string; title: string; subsections: { id: string; title: string }[] }[] {
   return anatomyData.sections.map(section => ({
@@ -417,4 +455,12 @@ export function getSections(): { id: string; title: string; subsections: { id: s
     title: section.title,
     subsections: section.subsections?.map(sub => ({ id: sub.id, title: sub.title })) || []
   }));
+}
+
+// Get total count of items
+export function getTotalCount(): { muscles: number; structures: number } {
+  return {
+    muscles: getAllMuscles().length,
+    structures: getAllStructures().length
+  };
 }

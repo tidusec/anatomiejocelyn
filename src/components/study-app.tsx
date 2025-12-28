@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,19 +21,33 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Flashcard } from "@/components/flashcard";
 import { MultipleChoice } from "@/components/multiple-choice";
 import { MuscleOverview } from "@/components/muscle-overview";
+import { StatisticsDashboard } from "@/components/statistics-dashboard";
 import { anatomyData, getAllMuscles, getSections, Muscle } from "@/data/anatomy-data";
-import { Settings, BookOpen, Brain, List, GraduationCap } from "lucide-react";
+import { useStudyProgress } from "@/hooks/use-study-progress";
+import {
+  Settings,
+  BookOpen,
+  Brain,
+  List,
+  GraduationCap,
+  BarChart3,
+  Flame,
+  Target,
+  Moon,
+  Sun,
+  Heart,
+} from "lucide-react";
 
 type FlashcardField = "origin" | "insertion" | "innervation" | "function";
-type QuestionType = 
-  | "origin" 
-  | "insertion" 
-  | "innervation" 
-  | "function" 
-  | "name" 
-  | "origin_reverse" 
-  | "insertion_reverse" 
-  | "innervation_reverse" 
+type QuestionType =
+  | "origin"
+  | "insertion"
+  | "innervation"
+  | "function"
+  | "name"
+  | "origin_reverse"
+  | "insertion_reverse"
+  | "innervation_reverse"
   | "function_reverse"
   | "true_false"
   | "match_property";
@@ -42,19 +56,58 @@ export function StudyApp() {
   // Filter state
   const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
   const [selectedSubsections, setSelectedSubsections] = useState<Set<string>>(new Set());
-  
+
   // Flashcard settings
   const [flashcardShowFields, setFlashcardShowFields] = useState<Set<FlashcardField>>(
     new Set(["origin", "insertion", "innervation", "function"])
   );
-  
+
   // Multiple choice settings
   const [mcQuestionTypes, setMcQuestionTypes] = useState<Set<QuestionType>>(
-    new Set(["origin", "insertion", "innervation", "function", "name", "origin_reverse", "insertion_reverse", "innervation_reverse", "function_reverse", "true_false", "match_property"])
+    new Set([
+      "origin",
+      "insertion",
+      "innervation",
+      "function",
+      "name",
+      "origin_reverse",
+      "insertion_reverse",
+      "innervation_reverse",
+      "function_reverse",
+      "true_false",
+      "match_property",
+    ])
   );
+
+  // Theme
+  const [isDark, setIsDark] = useState(false);
+
+  // Study progress
+  const { getStatistics, isLoaded } = useStudyProgress();
+  const stats = isLoaded ? getStatistics() : null;
 
   const sections = getSections();
   const allMuscles = getAllMuscles();
+
+  // Theme effect
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("anatomy-study-theme");
+    if (savedTheme === "dark") {
+      setIsDark(true);
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("anatomy-study-theme", "light");
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("anatomy-study-theme", "dark");
+    }
+  };
 
   // Filter muscles based on selection
   const filteredMuscles = useMemo(() => {
@@ -64,7 +117,7 @@ export function StudyApp() {
 
     return allMuscles.filter(({ muscle, sectionTitle, subsectionTitle }) => {
       // Find the section by title
-      const section = anatomyData.sections.find(s => s.title === sectionTitle);
+      const section = anatomyData.sections.find((s) => s.title === sectionTitle);
       if (!section) return false;
 
       // Check if the whole section is selected
@@ -72,7 +125,7 @@ export function StudyApp() {
 
       // Check if the subsection is selected
       if (subsectionTitle) {
-        const subsection = section.subsections?.find(sub => sub.title === subsectionTitle);
+        const subsection = section.subsections?.find((sub) => sub.title === subsectionTitle);
         if (subsection && selectedSubsections.has(subsection.id)) return true;
       }
 
@@ -101,10 +154,8 @@ export function StudyApp() {
   };
 
   const handleSelectAll = () => {
-    const allSectionIds = new Set(sections.map(s => s.id));
-    const allSubsectionIds = new Set(
-      sections.flatMap(s => s.subsections.map(sub => sub.id))
-    );
+    const allSectionIds = new Set(sections.map((s) => s.id));
+    const allSubsectionIds = new Set(sections.flatMap((s) => s.subsections.map((sub) => sub.id)));
     setSelectedSections(allSectionIds);
     setSelectedSubsections(allSubsectionIds);
   };
@@ -141,36 +192,61 @@ export function StudyApp() {
   const totalSelected = selectedSections.size + selectedSubsections.size;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors">
       {/* Header */}
       <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <GraduationCap className="h-8 w-8 text-primary" />
+              <div className="relative">
+                <GraduationCap className="h-8 w-8 text-pink-500" />
+                <Heart className="h-3 w-3 text-red-500 absolute -bottom-1 -right-1 fill-red-500" />
+              </div>
               <div>
-                <h1 className="text-2xl font-bold text-primary">Anatomie Studie</h1>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+                  Anatomie Studie
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                  Spieren leren voor mensen met anatomie 💀
+                  Spieren leren
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {/* Quick stats */}
+              {stats && stats.streakDays > 0 && (
+                <Badge
+                  variant="outline"
+                  className="hidden md:flex bg-orange-50 text-orange-600 border-orange-200"
+                >
+                  <Flame className="h-3 w-3 mr-1" />
+                  {stats.streakDays} dagen streak!
+                </Badge>
+              )}
+              {stats && stats.accuracy > 0 && (
+                <Badge
+                  variant="outline"
+                  className="hidden md:flex bg-green-50 text-green-600 border-green-200"
+                >
+                  <Target className="h-3 w-3 mr-1" />
+                  {stats.accuracy}%
+                </Badge>
+              )}
               <Badge variant="outline" className="hidden sm:flex">
-                {filteredMuscles.length} spieren geselecteerd
+                {filteredMuscles.length} spieren
               </Badge>
+              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon">
                     <Settings className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="w-[400px] sm:w-[540px]">
+                <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
                   <SheetHeader>
                     <SheetTitle>Instellingen</SheetTitle>
-                    <SheetDescription>
-                      Pas je oefensessie aan
-                    </SheetDescription>
+                    <SheetDescription>Pas je oefensessie aan</SheetDescription>
                   </SheetHeader>
                   <div className="mt-6 space-y-6">
                     {/* Section Selection */}
@@ -209,10 +285,7 @@ export function StudyApp() {
                               {section.subsections.length > 0 && (
                                 <div className="ml-6 space-y-1">
                                   {section.subsections.map((sub) => (
-                                    <div
-                                      key={sub.id}
-                                      className="flex items-center space-x-2"
-                                    >
+                                    <div key={sub.id} className="flex items-center space-x-2">
                                       <Checkbox
                                         id={`settings-${sub.id}`}
                                         checked={selectedSubsections.has(sub.id)}
@@ -278,7 +351,9 @@ export function StudyApp() {
                       </h3>
                       <ScrollArea className="h-[280px]">
                         <div className="space-y-2 pr-4">
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">Standaard vragen</p>
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">
+                            Standaard vragen
+                          </p>
                           {[
                             { id: "name" as QuestionType, label: "Spiernaam raden" },
                             { id: "origin" as QuestionType, label: "Origo vragen" },
@@ -295,13 +370,18 @@ export function StudyApp() {
                               />
                             </div>
                           ))}
-                          
+
                           <Separator className="my-3" />
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">Omgekeerde vragen</p>
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">
+                            Omgekeerde vragen
+                          </p>
                           {[
                             { id: "origin_reverse" as QuestionType, label: "Spier bij origo" },
                             { id: "insertion_reverse" as QuestionType, label: "Spier bij insertie" },
-                            { id: "innervation_reverse" as QuestionType, label: "Spier bij innervatie" },
+                            {
+                              id: "innervation_reverse" as QuestionType,
+                              label: "Spier bij innervatie",
+                            },
                             { id: "function_reverse" as QuestionType, label: "Spier bij functie" },
                           ].map((type) => (
                             <div key={type.id} className="flex items-center justify-between">
@@ -313,9 +393,11 @@ export function StudyApp() {
                               />
                             </div>
                           ))}
-                          
+
                           <Separator className="my-3" />
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">Extra vraagtypes</p>
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">
+                            Extra vraagtypes
+                          </p>
                           {[
                             { id: "true_false" as QuestionType, label: "Waar/Niet waar vragen" },
                             { id: "match_property" as QuestionType, label: "Eigenschap matchen" },
@@ -343,16 +425,20 @@ export function StudyApp() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="flashcards" className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8">
-            <TabsTrigger value="flashcards" className="flex items-center gap-2">
+          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-4 mb-8">
+            <TabsTrigger value="flashcards" className="flex items-center gap-1 md:gap-2">
               <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Flashcards</span>
             </TabsTrigger>
-            <TabsTrigger value="quiz" className="flex items-center gap-2">
+            <TabsTrigger value="quiz" className="flex items-center gap-1 md:gap-2">
               <Brain className="h-4 w-4" />
               <span className="hidden sm:inline">Quiz</span>
             </TabsTrigger>
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TabsTrigger value="stats" className="flex items-center gap-1 md:gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Statistieken</span>
+            </TabsTrigger>
+            <TabsTrigger value="overview" className="flex items-center gap-1 md:gap-2">
               <List className="h-4 w-4" />
               <span className="hidden sm:inline">Overzicht</span>
             </TabsTrigger>
@@ -361,9 +447,9 @@ export function StudyApp() {
           <TabsContent value="flashcards" className="mt-0">
             <div className="flex flex-col items-center">
               <div className="mb-6 text-center">
-                <h2 className="text-xl font-semibold mb-2">Flashcards</h2>
+                <h2 className="text-xl font-semibold mb-2">📚 Flashcards</h2>
                 <p className="text-muted-foreground">
-                  Klik op een kaart om de details te zien. Markeer of je het antwoord wist.
+                  Klik op een kaart om de details te zien. Gebruik sneltoetsen voor sneller leren!
                 </p>
               </div>
               <Flashcard
@@ -377,9 +463,9 @@ export function StudyApp() {
           <TabsContent value="quiz" className="mt-0">
             <div className="flex flex-col items-center">
               <div className="mb-6 text-center">
-                <h2 className="text-xl font-semibold mb-2">Meerkeuzevragen</h2>
+                <h2 className="text-xl font-semibold mb-2">🧠 Meerkeuzevragen</h2>
                 <p className="text-muted-foreground">
-                  Test je kennis met meerkeuzevragen over de geselecteerde spieren.
+                  Test je kennis met meerkeuzevragen. Gebruik toetsen 1-4 om snel te antwoorden!
                 </p>
               </div>
               <MultipleChoice
@@ -389,12 +475,24 @@ export function StudyApp() {
             </div>
           </TabsContent>
 
+          <TabsContent value="stats" className="mt-0">
+            <div className="flex flex-col items-center">
+              <div className="mb-6 text-center">
+                <h2 className="text-xl font-semibold mb-2">📊 Statistieken</h2>
+                <p className="text-muted-foreground">
+                  Bekijk je voortgang en ontdek welke spieren meer aandacht nodig hebben.
+                </p>
+              </div>
+              <StatisticsDashboard allMuscles={allMuscles} />
+            </div>
+          </TabsContent>
+
           <TabsContent value="overview" className="mt-0">
             <div className="flex flex-col items-center">
               <div className="mb-6 text-center">
-                <h2 className="text-xl font-semibold mb-2">Overzicht</h2>
+                <h2 className="text-xl font-semibold mb-2">📋 Overzicht</h2>
                 <p className="text-muted-foreground">
-                  Bekijk alle spieren en hun eigenschappen.
+                  Bekijk alle spieren en hun eigenschappen in een handig overzicht.
                 </p>
               </div>
               <MuscleOverview muscles={filteredMuscles} />
@@ -406,7 +504,10 @@ export function StudyApp() {
       {/* Footer */}
       <footer className="bg-white/50 dark:bg-gray-900/50 border-t mt-auto">
         <div className="container mx-auto px-4 py-4 text-center text-sm text-muted-foreground">
-          Gemaakt met ❤️
+          <p>
+            Gemaakt met{" "}
+            <Heart className="h-4 w-4 inline text-red-500 fill-red-500 animate-pulse" />
+          </p>
         </div>
       </footer>
     </div>

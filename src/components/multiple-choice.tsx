@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Muscle } from "@/data/anatomy-data";
-import { CheckCircle, XCircle, RotateCcw, ArrowRight } from "lucide-react";
+import { useStudyProgress } from "@/hooks/use-study-progress";
+import { CheckCircle, XCircle, RotateCcw, ArrowRight, Keyboard, Clock, Zap } from "lucide-react";
 
 type QuestionType = 
   | "origin" 
@@ -279,16 +280,81 @@ export function MultipleChoice({ muscles, questionTypes }: MultipleChoiceProps) 
   const [correctCount, setCorrectCount] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [quizMode, setQuizMode] = useState<"quick" | "full" | "due">("full");
+
+  const {
+    recordCorrect,
+    recordIncorrect,
+    getMusclesDueForReview,
+    startSession,
+    endSession,
+  } = useStudyProgress();
 
   const allMuscles = muscles.map(m => m.muscle);
+  const muscleNames = muscles.map(m => m.muscle.name);
+  const dueForReview = getMusclesDueForReview(muscleNames);
+
+  // Start session on mount
+  useEffect(() => {
+    startSession();
+    return () => {
+      endSession();
+    };
+  }, [startSession, endSession]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Number keys 1-4 to select answers
+      if (e.key >= "1" && e.key <= "4") {
+        const index = parseInt(e.key) - 1;
+        const currentQuestion = questions[currentIndex];
+        if (currentQuestion && currentQuestion.options[index] && !showResult) {
+          setSelectedAnswer(currentQuestion.options[index]);
+        }
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case "enter":
+        case " ":
+          e.preventDefault();
+          if (!showResult && selectedAnswer) {
+            handleSubmit();
+          } else if (showResult) {
+            handleNext();
+          }
+          break;
+        case "?":
+          e.preventDefault();
+          setShowKeyboardHelp(!showKeyboardHelp);
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [showResult, selectedAnswer, currentIndex, questions, showKeyboardHelp]);
 
   useEffect(() => {
     generateNewQuiz();
-  }, [muscles, questionTypes]);
+  }, [muscles, questionTypes, quizMode]);
 
-  const generateNewQuiz = () => {
+  const generateNewQuiz = useCallback(() => {
     const newQuestions: Question[] = [];
-    const shuffledMuscles = shuffleArray(muscles);
+    
+    // Filter muscles based on quiz mode
+    let targetMuscles = muscles;
+    if (quizMode === "due" && dueForReview.length > 0) {
+      targetMuscles = muscles.filter(m => dueForReview.includes(m.muscle.name));
+    }
+    
+    const shuffledMuscles = shuffleArray(targetMuscles);
 
     // Generate multiple questions per muscle for more variety
     for (const { muscle } of shuffledMuscles) {
@@ -306,8 +372,8 @@ export function MultipleChoice({ muscles, questionTypes }: MultipleChoiceProps) 
       }
     }
 
-    // Shuffle and limit to a reasonable number of questions
-    const maxQuestions = Math.min(newQuestions.length, 30);
+    // Shuffle and limit based on quiz mode
+    const maxQuestions = quizMode === "quick" ? 10 : Math.min(newQuestions.length, 30);
     setQuestions(shuffleArray(newQuestions).slice(0, maxQuestions));
     setCurrentIndex(0);
     setSelectedAnswer(null);
@@ -315,7 +381,7 @@ export function MultipleChoice({ muscles, questionTypes }: MultipleChoiceProps) 
     setCorrectCount(0);
     setAnsweredCount(0);
     setIsFinished(false);
-  };
+  }, [muscles, questionTypes, quizMode, allMuscles, dueForReview]);
 
   const handleAnswerSelect = (answer: string) => {
     if (showResult) return;
@@ -326,8 +392,16 @@ export function MultipleChoice({ muscles, questionTypes }: MultipleChoiceProps) 
     if (!selectedAnswer) return;
     setShowResult(true);
     setAnsweredCount(prev => prev + 1);
-    if (selectedAnswer === questions[currentIndex].correctAnswer) {
+    
+    const currentQuestion = questions[currentIndex];
+    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    
+    // Record progress
+    if (isCorrect) {
       setCorrectCount(prev => prev + 1);
+      recordCorrect(currentQuestion.muscle.name);
+    } else {
+      recordIncorrect(currentQuestion.muscle.name);
     }
   };
 
@@ -393,6 +467,70 @@ export function MultipleChoice({ muscles, questionTypes }: MultipleChoiceProps) 
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
+      {/* Keyboard help modal */}
+      {showKeyboardHelp && (
+        <Card className="border-primary">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Keyboard className="h-4 w-4" />
+                Sneltoetsen
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowKeyboardHelp(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div><kbd className="px-2 py-1 bg-muted rounded">1-4</kbd> Kies antwoord A-D</div>
+              <div><kbd className="px-2 py-1 bg-muted rounded">Enter</kbd> Bevestig / Volgende</div>
+              <div><kbd className="px-2 py-1 bg-muted rounded">?</kbd> Deze help</div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quiz mode selector */}
+      <div className="flex flex-wrap justify-between items-center gap-2">
+        <div className="flex gap-2">
+          <Button
+            variant={quizMode === "full" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setQuizMode("full")}
+          >
+            Volledige Quiz
+          </Button>
+          <Button
+            variant={quizMode === "quick" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setQuizMode("quick")}
+          >
+            <Zap className="h-3 w-3 mr-1" />
+            Snel (10)
+          </Button>
+          {dueForReview.length > 0 && (
+            <Button
+              variant={quizMode === "due" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setQuizMode("due")}
+            >
+              <Clock className="h-3 w-3 mr-1" />
+              Herhalen ({dueForReview.length})
+            </Button>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowKeyboardHelp(!showKeyboardHelp)}
+        >
+          <Keyboard className="h-4 w-4" />
+        </Button>
+      </div>
+
       {/* Progress */}
       <div className="flex justify-between items-center mb-2">
         <div className="flex gap-2">
